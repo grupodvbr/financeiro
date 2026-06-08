@@ -1032,7 +1032,7 @@ const sb = supabase.createClient(
 
 let dados = [];
 let idEditando = null;
-
+let modoClone = false;
 
 const mesAtual =
 new Date().toISOString().slice(0,7);
@@ -1229,6 +1229,16 @@ onclick="abrirEditar('${item.id}')">
 </button>
 
 <button
+class="btn"
+style="
+background:#16a34a;
+color:#fff;
+"
+onclick="clonarRegistro('${item.id}')">
+📄
+</button>
+
+<button
 class="btn excluir"
 onclick="excluir('${item.id}')">
 🗑️
@@ -1371,12 +1381,71 @@ document.getElementById("modal").style.display = "flex";
 
 }
 
-function fecharModal(){
 
-document.getElementById("modal").style.display = "none";
+
+
+function clonarRegistro(id){
+
+const item =
+dados.find(
+i => i.id == id
+);
+
+if(!item) return;
+
+modoClone = true;
+
+idEditando = null;
+
+document.getElementById("edit_data").value =
+item.data || "";
+
+document.getElementById("edit_descricao").value =
+item.descricao || "";
+
+document.getElementById("edit_categoria").value =
+item.categoria || "";
+
+document.getElementById("edit_valor").value =
+moeda(item.valor || 0);
+
+document.getElementById("edit_tipo").value =
+item.tipo || "DESPESA";
+
+document.querySelector(
+".modal-box h2"
+).innerText =
+"Clonar Registro";
+
+document.querySelector(
+".salvar-modal"
+).innerText =
+"CRIAR CÓPIA";
+
+document.getElementById("modal").style.display =
+"flex";
 
 }
 
+  
+function fecharModal(){
+
+modoClone = false;
+
+document.querySelector(
+".modal-box h2"
+).innerText =
+"Editar Registro";
+
+document.querySelector(
+".salvar-modal"
+).innerText =
+"SALVAR ALTERAÇÕES";
+
+document.getElementById("modal").style.display =
+"none";
+
+}
 async function salvarEdicao(){
 
 loading(true);
@@ -1433,10 +1502,36 @@ if(url){
 update.anexo_url = url;
 }
 
+if(modoClone){
+
+await sb
+.from("financas")
+.insert([{
+
+data:update.data,
+
+descricao:update.descricao,
+
+categoria:update.categoria,
+
+valor:update.valor,
+
+tipo:update.tipo,
+
+anexo_url:update.anexo_url || null
+
+}]);
+
+modoClone = false;
+
+}else{
+
 await sb
 .from("financas")
 .update(update)
 .eq("id",idEditando);
+
+}
 
 loading(false);
 
