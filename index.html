@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Cadastro Premium de Registros</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+background:
+linear-gradient(135deg,#020617,#0f172a,#111827);
+min-height:100vh;
+padding:25px;
+overflow-x:hidden;
+color:#fff;
+}
+
+/* FUNDO */
+
+.bg{
+position:fixed;
+inset:0;
+overflow:hidden;
+z-index:-1;
+}
+
+.bolha{
+position:absolute;
+border-radius:50%;
+background:rgba(255,255,255,.03);
+animation:float 10s infinite linear;
+}
+
+.b1{
+width:300px;
+height:300px;
+left:-100px;
+top:-80px;
+}
+
+.b2{
+width:220px;
+height:220px;
+right:-80px;
+bottom:100px;
+}
+
+.b3{
+width:180px;
+height:180px;
+left:50%;
+top:40%;
+}
+
+@keyframes float{
+50%{
+transform:translateY(-20px);
+}
+}
+
+/* TOPO */
+
+.topo{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+flex-wrap:wrap;
+gap:15px;
+}
+
+.logo-area{
+display:flex;
+align-items:center;
+gap:18px;
+}
+
+.logo{
+width:75px;
+height:75px;
+border-radius:24px;
+background:
+linear-gradient(135deg,#16a34a,#22c55e);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:34px;
+font-weight:900;
+box-shadow:0 15px 40px rgba(34,197,94,.35);
+}
+
+.topo h1{
+font-size:36px;
+font-weight:900;
+}
+
+.topo p{
+margin-top:8px;
+color:#cbd5e1;
+font-size:14px;
+}
+
+.data-box{
+padding:15px 22px;
+border-radius:18px;
+background:rgba(255,255,255,.06);
+backdrop-filter:blur(10px);
+border:1px solid rgba(255,255,255,.08);
+font-size:14px;
+}
+
+/* LAYOUT */
+
+.layout{
+display:grid;
+grid-template-columns:430px 1fr;
+gap:25px;
+align-items:start;
+}
+
+/* CARD FORM */
+
+.card-form{
+background:rgba(255,255,255,.06);
+backdrop-filter:blur(18px);
+border:1px solid rgba(255,255,255,.08);
+border-radius:30px;
+padding:24px;
+position:sticky;
+top:20px;
+}
+
+.card-form h2{
+font-size:26px;
+font-weight:900;
+margin-bottom:6px;
+}
+
+.card-form p{
+font-size:13px;
+color:#cbd5e1;
+margin-bottom:22px;
+}
+
+.form-grid{
+display:grid;
+gap:14px;
+}
+
+.form-group{
+display:grid;
+gap:7px;
+}
+
+.form-group label{
+font-size:13px;
+font-weight:700;
+color:#e2e8f0;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+width:100%;
+height:54px;
+border:none;
+outline:none;
+padding:0 16px;
+border-radius:18px;
+background:rgba(255,255,255,.08);
+color:#fff;
+font-size:14px;
+}
+
+.form-group textarea{
+height:100px;
+padding-top:15px;
+resize:none;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder{
+color:#cbd5e1;
+}
+
+.upload-box{
+border:2px dashed rgba(255,255,255,.15);
+padding:20px;
+border-radius:20px;
+text-align:center;
+background:rgba(255,255,255,.04);
+}
+
+.upload-box input{
+background:none;
+padding:0;
+height:auto;
+}
+
+.btn-salvar{
+height:58px;
+border:none;
+border-radius:20px;
+background:
+linear-gradient(135deg,#16a34a,#22c55e);
+color:#fff;
+font-size:16px;
+font-weight:900;
+cursor:pointer;
+margin-top:10px;
+transition:.2s;
+box-shadow:0 15px 35px rgba(34,197,94,.35);
+}
+
+.btn-salvar:hover{
+transform:translateY(-3px);
+}
+
+/* PAINEL */
+
+.painel{
+display:grid;
+gap:20px;
+}
+
+/* CARDS */
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:18px;
+}
+
+.card{
+background:rgba(255,255,255,.06);
+border:1px solid rgba(255,255,255,.08);
+backdrop-filter:blur(15px);
+padding:22px;
+border-radius:24px;
+position:relative;
+overflow:hidden;
+}
+
+.card::after{
+content:'';
+position:absolute;
+width:120px;
+height:120px;
+background:rgba(255,255,255,.04);
+border-radius:50%;
+right:-50px;
+top:-50px;
+}
+
+.card span{
+display:block;
+font-size:13px;
+color:#cbd5e1;
+margin-bottom:10px;
+font-weight:600;
+}
+
+.card strong{
+font-size:32px;
+font-weight:900;
+}
+
+.receita{
+color:#4ade80;
+}
+
+.despesa{
+color:#f87171;
+}
+
+.saldo{
+color:#60a5fa;
+}
+
+/* TABELA */
+
+.area-tabela{
+background:rgba(255,255,255,.06);
+border:1px solid rgba(255,255,255,.08);
+backdrop-filter:blur(15px);
+border-radius:30px;
+padding:22px;
+overflow:auto;
+}
+
+.topo-tabela{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.topo-tabela h2{
+font-size:24px;
+font-weight:900;
+}
+
+.qtd{
+padding:10px 16px;
+border-radius:999px;
+background:rgba(255,255,255,.08);
+font-size:13px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+min-width:1200px;
+}
+
+thead{
+background:rgba(255,255,255,.08);
+}
+
+th{
+padding:18px 14px;
+font-size:12px;
+text-transform:uppercase;
+letter-spacing:.5px;
+color:#e2e8f0;
+}
+
+td{
+padding:18px 14px;
+border-bottom:1px solid rgba(255,255,255,.06);
+font-size:14px;
+text-align:center;
+}
+
+tbody tr{
+transition:.2s;
+}
+
+tbody tr:hover{
+background:rgba(255,255,255,.04);
+}
+
+/* BADGES */
+
+.badge{
+padding:8px 15px;
+border-radius:999px;
+font-size:12px;
+font-weight:800;
+display:inline-block;
+}
+
+.badge.receita{
+background:rgba(34,197,94,.12);
+color:#4ade80;
+border:1px solid rgba(34,197,94,.25);
+}
+
+.badge.despesa{
+background:rgba(239,68,68,.12);
+color:#f87171;
+border:1px solid rgba(239,68,68,.25);
+}
+
+/* BOTÕES */
+
+.acoes{
+display:flex;
+justify-content:center;
+gap:8px;
+}
+
+.btn{
+width:42px;
+height:42px;
+border:none;
+border-radius:14px;
+cursor:pointer;
+font-size:16px;
+transition:.2s;
+}
+
+.btn:hover{
+transform:scale(1.08);
+}
+
+.editar{
+background:#2563eb;
+color:#fff;
+}
+
+.excluir{
+background:#dc2626;
+color:#fff;
+}
+
+/* MODAL */
+
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.7);
+backdrop-filter:blur(6px);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:9999;
+padding:20px;
+}
+
+.modal-box{
+width:100%;
+max-width:520px;
+background:#0f172a;
+border-radius:30px;
+padding:25px;
+display:grid;
+gap:14px;
+border:1px solid rgba(255,255,255,.08);
+}
+
+.modal-box h2{
+font-size:28px;
+font-weight:900;
+margin-bottom:10px;
+}
+
+.modal-box input,
+.modal-box select{
+height:54px;
+border:none;
+outline:none;
+padding:0 15px;
+border-radius:18px;
+background:#1e293b;
+color:#fff;
+}
+
+.modal-box button{
+height:56px;
+border:none;
+border-radius:18px;
+cursor:pointer;
+font-size:15px;
+font-weight:900;
+}
+
+.salvar-modal{
+background:
+linear-gradient(135deg,#16a34a,#22c55e);
+color:#fff;
+}
+
+.cancelar{
+background:#1e293b;
+color:#fff;
+}
+
+/* LOADING */
+
+.loading{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.5);
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:999999;
+backdrop-filter:blur(6px);
+display:none;
+}
+
+.loader{
+width:80px;
+height:80px;
+border-radius:50%;
+border:7px solid rgba(255,255,255,.1);
+border-top:7px solid #22c55e;
+animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+100%{
+transform:rotate(360deg);
+}
+}
+
+/* RESPONSIVO */
+
+@media(max-width:1100px){
+
+.layout{
+grid-template-columns:1fr;
+}
+
+.card-form{
+position:relative;
+top:0;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="bg">
+<div class="bolha b1"></div>
+<div class="bolha b2"></div>
+<div class="bolha b3"></div>
+</div>
+
+<div class="loading" id="loading">
+<div class="loader"></div>
+</div>
+
+<div class="topo">
+
+<div class="logo-area">
+
+<div class="logo">
+$
+</div>
+
+<div>
+<h1>Caixa</h1>
+<p>Cadastro e gerenciamento completo de registros financeiros</p>
+</div>
+
+</div>
+
+<div class="data-box" id="dataHoje"></div>
+
+</div>
+
+<div class="layout">
+
+<!-- FORM -->
+
+<div class="card-form">
+
+<h2>Novo Registro</h2>
+
+<p>Cadastre receitas e despesas com anexos e categorias</p>
+
+<div class="form-grid">
+
+<div class="form-group">
+<label>Data</label>
+<input type="date" id="data">
+</div>
+
+<div class="form-group">
+<label>Descrição</label>
+<input type="text" id="descricao" placeholder="Digite a descrição">
+</div>
+
+<div class="form-group">
+<label>Categoria</label>
+<input type="text" id="categoria" placeholder="Ex: Mercado, Energia, Venda">
+</div>
+
+<div class="form-group">
+<label>Valor</label>
+<input type="text" id="valor" placeholder="R$ 0,00" oninput="formatarMoeda(this)">
+</div>
+
+<div class="form-group">
+<label>Tipo</label>
+
+<select id="tipo">
+
+<option value="DESPESA">DESPESA</option>
+<option value="RECEITA">RECEITA</option>
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label>Anexo</label>
+
+<div class="upload-box">
+
+<input type="file" id="anexo">
+
+</div>
+
+</div>
+
+<button class="btn-salvar" onclick="salvar()">
+SALVAR REGISTRO
+</button>
+
+</div>
+
+</div>
+
+<!-- PAINEL -->
+
+<div class="painel">
+
+<div class="cards">
+
+<div class="card">
+<span>Receitas Hoje</span>
+<strong class="receita" id="receitas">
+R$ 0,00
+</strong>
+</div>
+
+<div class="card">
+<span>Despesas Hoje</span>
+<strong class="despesa" id="despesas">
+R$ 0,00
+</strong>
+</div>
+
+<div class="card">
+<span>Saldo Atual</span>
+<strong class="saldo" id="saldo">
+R$ 0,00
+</strong>
+</div>
+
+<div class="card">
+<span>Total Registros</span>
+<strong id="registros">
+0
+</strong>
+</div>
+
+</div>
+
+<div class="area-tabela">
+
+<div class="topo-tabela">
+
+<h2>Movimentações do Dia</h2>
+
+<div class="qtd" id="qtdTabela">
+0 registros
+</div>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Data</th>
+<th>Descrição</th>
+<th>Categoria</th>
+<th>Tipo</th>
+<th>Valor</th>
+<th>Anexo</th>
+<th>Ações</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tbody"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- MODAL -->
+
+<div class="modal" id="modal">
+
+<div class="modal-box">
+
+<h2>Editar Registro</h2>
+
+<input type="date" id="edit_data">
+
+<input type="text" id="edit_descricao">
+
+<input type="text" id="edit_categoria">
+
+<input type="text" id="edit_valor" oninput="formatarMoeda(this)">
+
+<select id="edit_tipo">
+
+<option value="RECEITA">RECEITA</option>
+<option value="DESPESA">DESPESA</option>
+
+</select>
+
+<input type="file" id="edit_anexo">
+
+<button class="salvar-modal" onclick="salvarEdicao()">
+SALVAR ALTERAÇÕES
+</button>
+
+<button class="cancelar" onclick="fecharModal()">
+CANCELAR
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+const sb = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+let dados = [];
+let idEditando = null;
+
+const hoje = new Date().toISOString().split("T")[0];
+
+document.getElementById("data").value = hoje;
+
+document.getElementById("dataHoje").innerHTML =
+new Date().toLocaleDateString(
+'pt-BR',
+{
+weekday:'long',
+day:'2-digit',
+month:'long',
+year:'numeric'
+}
+);
+
+async function carregar(){
+
+loading(true);
+
+const { data, error } = await sb
+.from("jaqueline")
+.select("*")
+.eq("data",hoje)
+.order("created_at",{ascending:false});
+
+loading(false);
+
+if(error){
+
+alert("Erro ao carregar");
+
+console.log(error);
+
+return;
+
+}
+
+dados = data || [];
+
+render();
+
+}
+
+function render(){
+
+const tbody = document.getElementById("tbody");
+
+tbody.innerHTML = "";
+
+let receitas = 0;
+let despesas = 0;
+
+dados.forEach(item=>{
+
+const valor = Number(item.valor || 0);
+
+if(item.tipo === "RECEITA"){
+receitas += valor;
+}else{
+despesas += valor;
+}
+
+tbody.innerHTML += `
+
+<tr>
+
+<td>
+${formatarData(item.data)}
+</td>
+
+<td style="font-weight:700">
+${item.descricao || "-"}
+</td>
+
+<td>
+${item.categoria || "-"}
+</td>
+
+<td>
+
+<span class="badge ${item.tipo === 'RECEITA' ? 'receita':'despesa'}">
+
+${item.tipo}
+
+</span>
+
+</td>
+
+<td style="
+font-weight:900;
+font-size:15px;
+color:${item.tipo === 'RECEITA' ? '#4ade80':'#f87171'};
+">
+
+${moeda(valor)}
+
+</td>
+
+<td>
+
+${item.anexo_url
+? `<a href="${item.anexo_url}" target="_blank" style="color:#4ade80;font-weight:800">📎 Abrir</a>`
+: '-'
+}
+
+</td>
+
+<td>
+
+<div class="acoes">
+
+<button class="btn editar" onclick="abrirEditar('${item.id}')">
+✏️
+</button>
+
+<button class="btn excluir" onclick="excluir('${item.id}')">
+🗑️
+</button>
+
+</div>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+document.getElementById("receitas").innerText = moeda(receitas);
+
+document.getElementById("despesas").innerText = moeda(despesas);
+
+document.getElementById("saldo").innerText = moeda(receitas - despesas);
+
+document.getElementById("registros").innerText = dados.length;
+
+document.getElementById("qtdTabela").innerText =
+dados.length + " registros";
+
+}
+
+async function salvar(){
+
+const data = document.getElementById("data").value;
+
+if(!data){
+
+alert("Selecione a data");
+
+return;
+
+}
+
+loading(true);
+
+const valor = moedaParaNumero(
+document.getElementById("valor").value
+);
+
+const file = document.getElementById("anexo").files[0];
+
+let url = null;
+
+if(file){
+
+const nome = Date.now()+"_"+file.name;
+
+const { error } = await sb.storage
+.from("buffet")
+.upload("jaqueline/"+nome,file);
+
+if(error){
+
+loading(false);
+
+alert("Erro upload");
+
+return;
+
+}
+
+const { data } = sb.storage
+.from("buffet")
+.getPublicUrl("jaqueline/"+nome);
+
+url = data.publicUrl;
+
+}
+
+const obj = {
+
+data:data,
+
+descricao:document.getElementById("descricao").value,
+
+categoria:document.getElementById("categoria").value,
+
+valor:valor,
+
+tipo:document.getElementById("tipo").value,
+
+anexo_url:url
+
+};
+
+await sb
+.from("jaqueline")
+.insert([obj]);
+
+loading(false);
+
+limpar();
+
+carregar();
+
+}
+
+function limpar(){
+
+document.getElementById("descricao").value = "";
+
+document.getElementById("categoria").value = "";
+
+document.getElementById("valor").value = "";
+
+document.getElementById("anexo").value = "";
+
+}
+
+function abrirEditar(id){
+
+const item = dados.find(i=>i.id == id);
+
+if(!item) return;
+
+idEditando = id;
+
+document.getElementById("edit_data").value = item.data || "";
+
+document.getElementById("edit_descricao").value = item.descricao || "";
+
+document.getElementById("edit_categoria").value = item.categoria || "";
+
+document.getElementById("edit_valor").value = moeda(item.valor || 0);
+
+document.getElementById("edit_tipo").value = item.tipo || "DESPESA";
+
+document.getElementById("modal").style.display = "flex";
+
+}
+
+function fecharModal(){
+
+document.getElementById("modal").style.display = "none";
+
+}
+
+async function salvarEdicao(){
+
+loading(true);
+
+const valor = moedaParaNumero(
+document.getElementById("edit_valor").value
+);
+
+const file = document.getElementById("edit_anexo").files[0];
+
+let url = null;
+
+if(file){
+
+const nome = Date.now()+"_"+file.name;
+
+const { error } = await sb.storage
+.from("buffet")
+.upload("jaqueline/"+nome,file);
+
+if(error){
+
+loading(false);
+
+alert("Erro upload");
+
+return;
+
+}
+
+const { data } = sb.storage
+.from("buffet")
+.getPublicUrl("jaqueline/"+nome);
+
+url = data.publicUrl;
+
+}
+
+const update = {
+
+data:document.getElementById("edit_data").value,
+
+descricao:document.getElementById("edit_descricao").value,
+
+categoria:document.getElementById("edit_categoria").value,
+
+valor:valor,
+
+tipo:document.getElementById("edit_tipo").value
+
+};
+
+if(url){
+update.anexo_url = url;
+}
+
+await sb
+.from("jaqueline")
+.update(update)
+.eq("id",idEditando);
+
+loading(false);
+
+fecharModal();
+
+carregar();
+
+}
+
+async function excluir(id){
+
+if(!confirm("Excluir registro?")) return;
+
+loading(true);
+
+await sb
+.from("jaqueline")
+.delete()
+.eq("id",id);
+
+loading(false);
+
+carregar();
+
+}
+
+function moeda(v){
+
+return Number(v).toLocaleString(
+'pt-BR',
+{
+style:'currency',
+currency:'BRL'
+}
+);
+
+}
+
+function moedaParaNumero(v){
+
+return parseFloat(
+v.replace("R$","")
+.replace(/\./g,"")
+.replace(",",".")
+);
+
+}
+
+function formatarMoeda(input){
+
+let v = input.value.replace(/\D/g,'');
+
+v = (v/100).toFixed(2)+'';
+
+v = v.replace(".",",");
+
+v = v.replace(/\B(?=(\d{3})+(?!\d))/g,".");
+
+input.value = "R$ "+v;
+
+}
+
+function formatarData(data){
+
+if(!data) return "-";
+
+const d = new Date(data);
+
+const dia = String(d.getDate()).padStart(2,'0');
+
+const mes = String(d.getMonth()+1).padStart(2,'0');
+
+const ano = d.getFullYear();
+
+return `${dia}/${mes}/${ano}`;
+
+}
+
+function loading(status){
+
+document.getElementById("loading").style.display =
+status ? "flex" : "none";
+
+}
+
+
+carregar();
+
+</script>
+
+</body>
+</html>
