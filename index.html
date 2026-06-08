@@ -1089,7 +1089,6 @@ ultimoDia
 const { data, error } = await sb
 .from("financas")
 .select("*")
-.gte("data", inicioMes)
 .lte("data", fimMes)
 .order("data",{
 ascending:false
@@ -1119,17 +1118,32 @@ const tbody = document.getElementById("tbody");
 
 tbody.innerHTML = "";
 
-let receitas = 0;
-let despesas = 0;
+let receitasMes = 0;
+let despesasMes = 0;
+
+let saldoAcumulado = 0;
 
 dados.forEach(item=>{
 
 const valor = Number(item.valor || 0);
 
 if(item.tipo === "RECEITA"){
-receitas += valor;
+saldoAcumulado += valor;
 }else{
-despesas += valor;
+saldoAcumulado -= valor;
+}
+
+if(
+item.data >= inicioMes &&
+item.data <= fimMes
+){
+
+if(item.tipo === "RECEITA"){
+receitasMes += valor;
+}else{
+despesasMes += valor;
+}
+
 }
 
 tbody.innerHTML += `
@@ -1199,11 +1213,14 @@ ${item.anexo_url
 
 });
 
-document.getElementById("receitas").innerText = moeda(receitas);
+document.getElementById("receitas").innerText =
+moeda(receitasMes);
 
-document.getElementById("despesas").innerText = moeda(despesas);
+document.getElementById("despesas").innerText =
+moeda(despesasMes);
 
-document.getElementById("saldo").innerText = moeda(receitas - despesas);
+document.getElementById("saldo").innerText =
+moeda(saldoAcumulado);
 
 document.getElementById("registros").innerText = dados.length;
 
