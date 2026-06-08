@@ -621,21 +621,21 @@ SALVAR REGISTRO
 <div class="cards">
 
 <div class="card">
-<span>Receitas Hoje</span>
+<span>Receitas do Mês</span>
 <strong class="receita" id="receitas">
 R$ 0,00
 </strong>
 </div>
 
 <div class="card">
-<span>Despesas Hoje</span>
+<span>Despesas do Mês</span>
 <strong class="despesa" id="despesas">
 R$ 0,00
 </strong>
 </div>
 
 <div class="card">
-<span>Saldo Atual</span>
+<span>Saldo do Mês</span>
 <strong class="saldo" id="saldo">
 R$ 0,00
 </strong>
@@ -654,7 +654,24 @@ R$ 0,00
 
 <div class="topo-tabela">
 
-<h2>Movimentações do Dia</h2>
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+
+<h2>Movimentações do Mês</h2>
+
+<input
+type="month"
+id="filtroMes"
+onchange="carregar()"
+style="
+height:42px;
+padding:0 12px;
+border:none;
+border-radius:12px;
+background:rgba(255,255,255,.08);
+color:#fff;
+">
+
+</div>
 
 <div class="qtd" id="qtdTabela">
 0 registros
@@ -737,9 +754,18 @@ const sb = supabase.createClient(
 let dados = [];
 let idEditando = null;
 
-const hoje = new Date().toISOString().split("T")[0];
 
-document.getElementById("data").value = hoje;
+const mesAtual =
+new Date().toISOString().slice(0,7);
+
+document.getElementById("filtroMes").value =
+mesAtual;
+
+const hoje =
+new Date().toISOString().split("T")[0];
+
+document.getElementById("data").value =
+hoje;
 
 document.getElementById("dataHoje").innerHTML =
 new Date().toLocaleDateString(
@@ -756,11 +782,39 @@ async function carregar(){
 
 loading(true);
 
+const mesSelecionado =
+document.getElementById("filtroMes").value
+|| mesAtual;
+
+const partes =
+mesSelecionado.split("-");
+
+const ano = partes[0];
+const mes = partes[1];
+
+const inicioMes =
+`${ano}-${mes}-01`;
+
+const ultimoDia =
+new Date(
+Number(ano),
+Number(mes),
+0
+).getDate();
+
+const fimMes =
+`${ano}-${mes}-${String(
+ultimoDia
+).padStart(2,'0')}`;
+
 const { data, error } = await sb
-.from("jaqueline")
+.from("financas")
 .select("*")
-.eq("data",hoje)
-.order("created_at",{ascending:false});
+.gte("data", inicioMes)
+.lte("data", fimMes)
+.order("data",{
+ascending:false
+});
 
 loading(false);
 
@@ -907,7 +961,7 @@ const nome = Date.now()+"_"+file.name;
 
 const { error } = await sb.storage
 .from("buffet")
-.upload("jaqueline/"+nome,file);
+.upload("financas/"+nome,file);
 
 if(error){
 
@@ -921,7 +975,7 @@ return;
 
 const { data } = sb.storage
 .from("buffet")
-.getPublicUrl("jaqueline/"+nome);
+.getPublicUrl("financas/"+nome);
 
 url = data.publicUrl;
 
@@ -944,7 +998,7 @@ anexo_url:url
 };
 
 await sb
-.from("jaqueline")
+.from("financas")
 .insert([obj]);
 
 loading(false);
@@ -1013,7 +1067,7 @@ const nome = Date.now()+"_"+file.name;
 
 const { error } = await sb.storage
 .from("buffet")
-.upload("jaqueline/"+nome,file);
+.upload("financas/"+nome,file);
 
 if(error){
 
@@ -1027,7 +1081,7 @@ return;
 
 const { data } = sb.storage
 .from("buffet")
-.getPublicUrl("jaqueline/"+nome);
+.getPublicUrl("financas/"+nome);
 
 url = data.publicUrl;
 
@@ -1052,7 +1106,7 @@ update.anexo_url = url;
 }
 
 await sb
-.from("jaqueline")
+.from("financas")
 .update(update)
 .eq("id",idEditando);
 
@@ -1071,7 +1125,7 @@ if(!confirm("Excluir registro?")) return;
 loading(true);
 
 await sb
-.from("jaqueline")
+.from("financas")
 .delete()
 .eq("id",id);
 
