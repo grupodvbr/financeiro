@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+    <title>Painel de Análise Financeira</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg: #f4f6f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --line: #e2e8f0;
+
+            --green: #16a34a;
+            --red: #dc2626;
+            --blue: #2563eb;
+
+            --radius: 18px;
+
+            --shadow:
+                0 4px 20px rgba(15, 23, 42, .05);
+        }
+
+        body {
+            background: var(--bg);
+            padding: 12px;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* TOPO */
+
+        .topo {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .topo h1 {
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .topo span {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+            display: block;
+        }
+
+        .topo>div:last-child {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* BOTÕES */
+
+        .btn {
+            height: 40px;
+            padding: 0 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-export {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        .btn-pdf {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        /* FILTROS */
+
+        .filtros {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 14px;
+            scrollbar-width: none;
+        }
+
+        .filtros::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filtros input,
+        .filtros select {
+            height: 42px;
+            border: none;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 140px;
+            outline: none;
+            flex-shrink: 0;
+        }
+
+        .filtros button {
+            height: 42px;
+            padding: 0 18px;
+            border: none;
+            border-radius: 14px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        /* CARDS */
+
+        .cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 16px;
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            min-height: 105px;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            right: -40px;
+            top: -40px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, .03);
+        }
+
+        .card h3 {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .5px;
+            color: #64748b;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card strong {
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            position: relative;
+            z-index: 2;
+            line-height: 1.1;
+        }
+
+        .receita {
+            color: #16a34a;
+        }
+
+        .despesa {
+            color: #dc2626;
+        }
+
+        .saldo {
+            color: #2563eb;
+        }
+
+        /* KPI */
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .kpi {
+            background: #fff;
+            padding: 16px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .kpi small {
+            display: block;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .5px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .kpi strong {
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        /* GRÁFICOS */
+
+        .graficos {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        /* ABERTA */
+
+        .cotacao.aberta {
+            border-left: 4px solid #e5e7eb;
+            background: #ffffff;
+        }
+
+        .cotacao.aberta h3 {
+            color: #111827;
+        }
+
+        /* FINALIZADA */
+
+        .cotacao.finalizada {
+            border-left: 4px solid #fb923c;
+            background: #fff7ed;
+        }
+
+        .cotacao.finalizada h3 {
+            color: #c2410c;
+        }
+
+        /* RECEBIDA */
+
+        .cotacao.recebida {
+            border-left: 4px solid #22c55e;
+            background: #f0fdf4;
+        }
+
+        .cotacao.recebida h3 {
+            color: #166534;
+        }
+
+        .grafico::after {
+            content: '';
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 160px;
+            height: 160px;
+            background: rgba(15, 23, 42, .03);
+            border-radius: 50%;
+        }
+
+        .grafico h2 {
+            font-size: 15px;
+            font-weight: 900;
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .grafico canvas {
+            width: 100% !important;
+            height: 180px !important;
+            max-height: 180px !important;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* TABELA */
+
+        .tabela-box {
+            background: #fff;
+            padding: 14px;
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .tabela-box h2 {
+            font-size: 17px;
+            font-weight: 900;
+            margin-bottom: 14px;
+        }
+
+        .table-responsive {
+            overflow: auto;
+            border-radius: 18px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 850px;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #0f172a;
+        }
+
+        thead th {
+            padding: 14px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 13px;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 1px solid #edf2f7;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        /* BADGES */
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 900;
+            min-width: 72px;
+        }
+
+        .badge.receita {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.despesa {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* LOADING */
+
+        .loading {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, .7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            z-index: 99999;
+            display: none;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 5px solid #e2e8f0;
+            border-top-color: #0f172a;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* LINKS */
+
+        a {
+            text-decoration: none;
+            font-weight: 800;
+            color: #2563eb;
+        }
+
+        /* MOBILE EXTRA */
+
+        @media(max-width:520px) {
+
+            body {
+                padding: 8px;
+            }
+
+            .topo {
+                flex-direction: column;
+            }
+
+            .topo>div:last-child {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .cards {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .card strong {
+                font-size: 18px;
+            }
+
+            .kpi strong {
+                font-size: 16px;
+            }
+
+            .graficos {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .grafico {
+                padding: 10px;
+                border-radius: 18px;
+                min-height: 220px;
+            }
+
+            .grafico h2 {
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+
+            .grafico canvas {
+                height: 140px !important;
+                max-height: 140px !important;
+            }
+
+        }
+
+        /* CELULAR PEQUENO */
+
+        @media(max-width:390px) {
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="loading" id="loading">
+        <div class="loader"></div>
+    </div>
+
+    <div class="topo">
+        <div>
+            <h1>Caixa</h1>
+            <span>Análise de receitas e despesas</span>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-export" onclick="exportarExcel()">Exportar Excel</button>
+            <button class="btn btn-pdf" onclick="window.print()">Gerar PDF</button>
+        </div>
+    </div>
+
+    <div class="filtros">
+
+        <input type="date" id="filtroInicio">
+
+        <input type="date" id="filtroFim">
+
+        <select id="filtroTipo">
+<option value="">Todos Tipos</option>
+<option value="RECEITA">Receitas</option>
+<option value="DESPESA">Despesas</option>
+</select>
+
+        <input type="text" id="filtroCategoria" placeholder="Categoria">
+
+        <input type="text" id="filtroDescricao" placeholder="Buscar descrição">
+
+        <button onclick="aplicarFiltros()">Filtrar</button>
+
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Receitas</h3>
+            <strong class="receita" id="totalReceitas">R$ 0,00</strong>
+        </div>
+
+        <div class="card">
+            <h3>Total Despesas</h3>
+            <strong class="despesa" id="totalDespesas">R$ 0,00</strong>
+        </div>
+
+        <div class="card">
+            <h3>Saldo Final</h3>
+            <strong class="saldo" id="saldoFinal">R$ 0,00</strong>
+        </div>
+
+        <div class="card">
+            <h3>Total Registros</h3>
+            <strong id="totalRegistros">0</strong>
+        </div>
+
+    </div>
+
+
+
+    <div class="tabela-box">
+
+        <h2>Movimentações Financeiras</h2>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Categoria</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th>Anexo</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tbody"></tbody>
+
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const sb = supabase.createClient(
+"https://dxkszikemntfusfyrzos.supabase.co",
+"sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+let dados = [];
+let filtrados = [];
+
+let pizzaChart;
+let categoriaChart;
+let linhaChart;
+let barraChart;
+
+async function carregar(){
+
+loading(true);
+
+const { data, error } = await sb
+.from("jaqueline")
+.select("*")
+.order("data",{ascending:true});
+
+loading(false);
+
+if(error){
+alert("Erro ao carregar");
+console.log(error);
+return;
+}
+
+dados = data || [];
+
+filtrados = [...dados];
+
+render();
+
+}
+
+function loading(status){
+document.getElementById("loading").style.display = status ? "flex" : "none";
+}
+
+function aplicarFiltros(){
+
+const inicio = document.getElementById("filtroInicio").value;
+const fim = document.getElementById("filtroFim").value;
+const tipo = document.getElementById("filtroTipo").value;
+const categoria = document.getElementById("filtroCategoria").value.toLowerCase();
+const descricao = document.getElementById("filtroDescricao").value.toLowerCase();
+
+filtrados = dados.filter(item=>{
+
+const data = item.data || "";
+
+const okInicio = !inicio || data >= inicio;
+const okFim = !fim || data <= fim;
+const okTipo = !tipo || item.tipo === tipo;
+const okCategoria = !categoria || (item.categoria || "").toLowerCase().includes(categoria);
+const okDescricao = !descricao || (item.descricao || "").toLowerCase().includes(descricao);
+
+return okInicio && okFim && okTipo && okCategoria && okDescricao;
+
+});
+
+render();
+
+}
+
+function render(){
+
+renderCards();
+renderTabela();
+renderGraficos();
+renderKPIS();
+
+}
+
+function renderCards(){
+
+const receitas = filtrados
+.filter(i=>i.tipo==="RECEITA")
+.reduce((a,b)=>a + Number(b.valor || 0),0);
+
+const despesas = filtrados
+.filter(i=>i.tipo==="DESPESA")
+.reduce((a,b)=>a + Number(b.valor || 0),0);
+
+document.getElementById("totalReceitas").innerText = moeda(receitas);
+
+document.getElementById("totalDespesas").innerText = moeda(despesas);
+
+document.getElementById("saldoFinal").innerText = moeda(receitas - despesas);
+
+document.getElementById("totalRegistros").innerText = filtrados.length;
+
+}
+
+function renderKPIS(){
+
+const receitas = filtrados.filter(i=>i.tipo==="RECEITA");
+const despesas = filtrados.filter(i=>i.tipo==="DESPESA");
+
+const maiorReceita = receitas.length
+? Math.max(...receitas.map(i=>Number(i.valor || 0)))
+:0;
+
+const maiorDespesa = despesas.length
+? Math.max(...despesas.map(i=>Number(i.valor || 0)))
+:0;
+
+const mediaReceita = receitas.length
+? receitas.reduce((a,b)=>a + Number(b.valor || 0),0)/receitas.length
+:0;
+
+const mediaDespesa = despesas.length
+? despesas.reduce((a,b)=>a + Number(b.valor || 0),0)/despesas.length
+:0;
+
+document.getElementById("maiorReceita").innerText = moeda(maiorReceita);
+document.getElementById("maiorDespesa").innerText = moeda(maiorDespesa);
+document.getElementById("mediaReceita").innerText = moeda(mediaReceita);
+document.getElementById("mediaDespesa").innerText = moeda(mediaDespesa);
+
+}
+
+function renderTabela(){
+
+const tbody = document.getElementById("tbody");
+
+tbody.innerHTML = "";
+
+filtrados
+.sort((a,b)=>new Date(b.data)-new Date(a.data))
+.forEach(item=>{
+
+tbody.innerHTML += `
+<tr>
+
+<td>${formatarData(item.data)}</td>
+
+<td>${item.descricao || "-"}</td>
+
+<td>${item.categoria || "-"}</td>
+
+<td>
+<span class="badge ${item.tipo === 'RECEITA' ? 'receita':'despesa'}">
+${item.tipo}
+</span>
+</td>
+
+<td style="font-weight:700;color:${item.tipo==='RECEITA' ? '#16a34a':'#dc2626'}">
+${moeda(item.valor || 0)}
+</td>
+
+<td>
+${item.anexo_url
+? `<a href="${item.anexo_url}" target="_blank">📎 Abrir</a>`
+: '-'
+}
+</td>
+
+</tr>
+`;
+
+});
+
+}
+
+function renderGraficos(){
+
+const receitas = filtrados
+.filter(i=>i.tipo==="RECEITA")
+.reduce((a,b)=>a + Number(b.valor || 0),0);
+
+const despesas = filtrados
+.filter(i=>i.tipo==="DESPESA")
+.reduce((a,b)=>a + Number(b.valor || 0),0);
+
+if(pizzaChart) pizzaChart.destroy();
+
+pizzaChart = new Chart(
+document.getElementById("graficoPizza"),
+{
+type:'doughnut',
+data:{
+labels:['Receitas','Despesas'],
+datasets:[{
+data:[receitas,despesas],
+backgroundColor:[
+'#16a34a',
+'#dc2626'
+]
+}]
+}
+}
+);
+
+const categorias = {};
+
+filtrados.forEach(item=>{
+
+const cat = item.categoria || "Sem categoria";
+
+if(!categorias[cat]){
+categorias[cat] = 0;
+}
+
+categorias[cat] += Number(item.valor || 0);
+
+});
+
+if(categoriaChart) categoriaChart.destroy();
+
+categoriaChart = new Chart(
+document.getElementById("graficoCategoria"),
+{
+type:'bar',
+data:{
+labels:Object.keys(categorias),
+datasets:[{
+label:'Valor',
+data:Object.values(categorias)
+}]
+}
+}
+);
+
+const datas = {};
+filtrados.forEach(item=>{
+
+const data = formatarData(item.data);
+
+if(!datas[data]){
+datas[data] = 0;
+}
+
+if(item.tipo === "RECEITA"){
+datas[data] += Number(item.valor || 0);
+}else{
+datas[data] -= Number(item.valor || 0);
+}
+
+});
+
+if(linhaChart) linhaChart.destroy();
+
+linhaChart = new Chart(
+document.getElementById("graficoLinha"),
+{
+type:'line',
+data:{
+labels:Object.keys(datas),
+datasets:[{
+label:'Saldo Diário',
+data:Object.values(datas),
+fill:true
+}]
+}
+}
+);
+
+const fluxo = {
+Receitas:receitas,
+Despesas:despesas
+};
+
+if(barraChart) barraChart.destroy();
+
+barraChart = new Chart(
+document.getElementById("graficoBarra"),
+{
+type:'bar',
+data:{
+labels:Object.keys(fluxo),
+datasets:[{
+label:'Fluxo',
+data:Object.values(fluxo)
+}]
+}
+}
+);
+
+}
+
+function moeda(v){
+
+return Number(v).toLocaleString(
+'pt-BR',
+{
+style:'currency',
+currency:'BRL'
+}
+);
+
+}
+
+function formatarData(data){
+
+if(!data) return "-";
+
+const d = new Date(data);
+
+const dia = String(d.getDate()).padStart(2,'0');
+const mes = String(d.getMonth()+1).padStart(2,'0');
+const ano = d.getFullYear();
+
+return `${dia}/${mes}/${ano}`;
+
+}
+
+function exportarExcel(){
+
+let csv = "Data;Descrição;Categoria;Tipo;Valor\n";
+
+filtrados.forEach(item=>{
+
+csv += `${formatarData(item.data)};${item.descricao || ''};${item.categoria || ''};${item.tipo || ''};${item.valor || 0}\n`;
+
+});
+
+const blob = new Blob([csv],{type:'text/csv'});
+
+const a = document.createElement("a");
+
+a.href = URL.createObjectURL(blob);
+
+a.download = "analise_financeira.csv";
+
+a.click();
+
+}
+
+carregar();
+
+    </script>
+
+</body>
+
+</html>
