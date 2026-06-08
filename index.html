@@ -127,9 +127,11 @@ font-size:14px;
 
 .layout{
 display:grid;
-grid-template-columns:430px 1fr;
+grid-template-columns:minmax(320px,430px) 1fr;
 gap:25px;
 align-items:start;
+width:100%;
+max-width:100%;
 }
 
 /* CARD FORM */
@@ -241,8 +243,9 @@ gap:20px;
 
 .cards{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:18px;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:12px;
+width:100%;
 }
 
 .card{
@@ -275,8 +278,11 @@ font-weight:600;
 }
 
 .card strong{
-font-size:32px;
+font-size:clamp(16px,4vw,32px);
 font-weight:900;
+line-height:1.1;
+word-break:break-word;
+overflow-wrap:anywhere;
 }
 
 .receita{
@@ -298,10 +304,12 @@ background:rgba(255,255,255,.06);
 border:1px solid rgba(255,255,255,.08);
 backdrop-filter:blur(15px);
 border-radius:30px;
-padding:22px;
-overflow:auto;
+padding:18px;
+overflow-x:auto;
+overflow-y:hidden;
+width:100%;
+max-width:100%;
 }
-
 .topo-tabela{
 display:flex;
 justify-content:space-between;
@@ -326,7 +334,7 @@ font-size:13px;
 table{
 width:100%;
 border-collapse:collapse;
-min-width:1200px;
+min-width:800px;
 }
 
 thead{
@@ -673,45 +681,120 @@ height:60px;
 
 }
 
-@media (max-width:600px){
+@media(max-width:768px){
+
+body{
+padding:10px;
+}
+
+.topo{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.logo-area{
+width:100%;
+}
+
+.logo{
+width:55px;
+height:55px;
+font-size:24px;
+}
+
+.topo h1{
+font-size:26px;
+}
+
+.data-box{
+width:100%;
+text-align:center;
+}
+
+.layout{
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.card-form{
+width:100%;
+padding:16px;
+position:relative;
+top:auto;
+}
 
 .cards{
 grid-template-columns:1fr 1fr;
+gap:10px;
 }
 
 .card{
-padding:12px;
+padding:14px;
+}
+
+.card span{
+font-size:11px;
 }
 
 .card strong{
 font-size:18px;
 }
 
-.logo{
-width:52px;
-height:52px;
+.topo-tabela{
+flex-direction:column;
+align-items:stretch;
+}
+
+.topo-tabela > div{
+width:100%;
+}
+
+#filtroMes{
+width:100%;
+}
+
+.area-tabela{
+padding:12px;
+}
+
+table{
+min-width:750px;
+}
+
+.modal-box{
+padding:16px;
+max-width:100%;
+}
+
+.btn{
+width:34px;
+height:34px;
+}
+
+}
+
+@media(max-width:480px){
+
+.cards{
+grid-template-columns:1fr;
+}
+
+.card strong{
 font-size:22px;
 }
 
 .topo h1{
-font-size:24px;
+font-size:22px;
 }
 
-.card-form{
-padding:14px;
-}
-
-.area-tabela{
-padding:10px;
-}
-
-.qtd{
-font-size:11px;
-padding:8px 12px;
+.logo{
+width:50px;
+height:50px;
+font-size:20px;
 }
 
 }
-
 </style>
 </head>
 
